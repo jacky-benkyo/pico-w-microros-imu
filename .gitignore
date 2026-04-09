@@ -1,16 +1,10 @@
-pico-sdkbuild/
-# Build artifacts (最緊要係呢個！)
 build/
-bin/
-obj/
 libmicroros/
 built_packages/
-available_ros2_types/
-# IDE settings
+available_ros2_types
+microros_static_library/
 .vscode/
-.idea/
 .cmake/
-# Compiled binaries
 *.elf
 *.uf2
 *.bin
