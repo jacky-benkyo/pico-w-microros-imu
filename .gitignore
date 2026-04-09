@@ -3,6 +3,8 @@ libmicroros/
 built_packages/
 available_ros2_types
 microros_static_library/
+.github/
+3rd-party-licenses.txt
 .vscode/
 .cmake/
 *.elf
