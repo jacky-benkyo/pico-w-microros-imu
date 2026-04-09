@@ -17,6 +17,7 @@ target_link_libraries(pico_micro_ros_example
     pico_stdlib
     microros
     hardware_i2c
+    pico_cyw43_arch_none
 )
 
 target_include_directories(pico_micro_ros_example PUBLIC
