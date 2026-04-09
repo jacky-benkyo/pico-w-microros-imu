@@ -118,7 +118,6 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     last_time = now;
 
     float ax, ay, az;
-    float gy_rate;
     float raw_gy_rate;
 
     read_accel(&ax, &ay, &az);
@@ -233,7 +232,6 @@ int main()
     rclc_executor_add_timer(&executor, &timer);
     
     msg.header.frame_id.capacity = 20; // Allocate memory for string / 為字串分配記憶體
-    gpio_put(LED_PIN, 1);
 
     //msg.data = 0;
     while (true)
