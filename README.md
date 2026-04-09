@@ -1,115 +1,68 @@
-![banner](.images/banner-dark-theme.png#gh-dark-mode-only)
-![banner](.images/banner-light-theme.png#gh-light-mode-only)
+This repository provides a lightweight micro-ROS implementation for the Raspberry Pi Pico W using the GY-801 IMU module (ADXL345 accelerometer and L3G4200D gyroscope). It publishes stabilized IMU data to the ROS 2 environment.
+🌟 Key Features
 
-# micro-ROS module for Raspberry Pi Pico SDK
+    Pico W LED Support: Fixed the common issue where the onboard LED doesn't light up in micro-ROS environments. This project uses pico_cyw43_arch to properly control the LED via the WiFi chipset.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+    Sensor Fusion: Implemented a Complementary Filter (α=0.98) to combine accelerometer and gyroscope data, providing a stable orientation (Pitch) while eliminating gyro drift.
 
-## Getting Started
+    Auto-Calibration: The system performs an automatic gyroscope offset calibration during the first second of boot-up to ensure accurate "zero" readings.
 
-Here is a quick way to compile the example given in this repository.
+    RViz2 Integration: Outputs standard sensor_msgs/msg/Imu messages with Quaternion orientation, making it compatible with RViz2 out-of-the-box.
 
-### Dependencies
+🛠 Hardware Wiring
 
-micro-ROS precompiled library is compiled using `arm-none-eabi-gcc` [9.3.1](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2), a compatible version is expected when building the micro-ROS project.
-You can specify a compiler path with the following command:
+Connect your GY-801 to the Pico W as follows:
+GY-801 Pin	Pico W Pin	Function
+VCC	3.3V (Pin 36)	Power
+GND	GND (Pin 38)	Ground
+SDA	GP4 (Pin 6)	I2C0 SDA
+SCL	GP5 (Pin 7)	I2C0 SCL
+🚀 Getting Started
+1. Build and Flash
 
-```bash
-# Configure environment
-echo "export PICO_TOOLCHAIN_PATH=..." >> ~/.bashrc
-source ~/.bashrc
-```
+Ensure you have the pico-micro-ros-sdk set up in your environment.
+Bash
 
-### 1. Install Pico SDK
-First, make sure the Pico SDK is properly installed and configured:
-
-```bash
-# Install dependencies
-sudo apt install cmake g++ gcc-arm-none-eabi doxygen libnewlib-arm-none-eabi git python3
-git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git $HOME/pico-sdk
-
-# Configure environment
-echo "export PICO_SDK_PATH=$HOME/pico-sdk" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 2. Compile Example
-
-Once the Pico SDK is ready, clone this repository and compile the example:
-
-```bash
-git clone https://github.com/micro-ROS/micro_ros_raspberrypi_pico_sdk
-cd micro_ros_raspberrypi_pico_sdk
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 make
-```
 
-To flash, hold the boot button, plug the USB and run:
-```
-cp pico_micro_ros_example.uf2 /media/$USER/RPI-RP2
-```
+Drag and drop the generated .uf2 file into your Pico W.
+2. Run micro-ROS Agent
 
-### 3. Start Micro-ROS Agent
-Micro-ROS follows the client-server architecture, so you need to start the Micro-ROS Agent.
-You can do so using the [micro-ros-agent Snap](https://snapcraft.io/micro-ros-agent) (follow the link for installation details):
+Connect the Pico W to your PC via USB and run the agent:
+Bash
 
-```bash
-micro-ros-agent serial --dev /dev/ttyACM0 -b 115200
-```
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyACM0
 
-or using the [micro-ros-agent Docker](https://hub.docker.com/r/microros/micro-ros-agent):
-```bash
-docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:kilted serial --dev /dev/ttyACM0 -b 115200
-```
+Note: The onboard LED will turn ON once a successful connection with the agent is established.
+3. Monitor Data
 
-### Using UART serial communication
+Check the raw IMU data in a new terminal:
+Bash
 
-To use the UART serial protocol instead of USB (for example, to use micro-ROS in combination with a Raspberry Pi Debug Probe), it is enough to update the `# Configure Pico` section in the `CMakeLists.txt` file as follows:
+ros2 topic echo /pico_imu
 
-```
-# Configure Pico
-pico_enable_stdio_usb(pico_micro_ros_example 0)
-pico_enable_stdio_uart(pico_micro_ros_example 1)
-```
+📊 Visualization in RViz2
 
-## What files are relevant?
-- `pico_uart_transport.c`: Contains the board specific implementation of the serial transport (no change needed).
-- `CMakeLists.txt`: CMake file.
-- `pico_micro_ros_example.c`: The actual ROS 2 publisher.
+    Launch rviz2.
 
-## How to build the precompiled library
+    In Global Options, set the Fixed Frame to pico_frame.
 
-Micro-ROS is precompiled for Raspberry Pi Pico in [`libmicroros`](libmicroros).
-If you want to compile it by yourself:
+    Click Add -> By Topic and select /pico_imu.
 
-```bash
-docker pull microros/micro_ros_static_library_builder:kilted
-docker run -it --rm -v $(pwd):/project microros/micro_ros_static_library_builder:kilted
-```
+    Under the Imu display settings, enable Axes or Box to see the 3D orientation tracking in real-time.
 
-Note that folders added to `microros_static_library/library_generation/extra_packages` and entries added to `microros_static_library/library_generation/extra_packages/extra_packages.repos` will be taken into account by this build system.
-## How to use Pico SDK?
+🔧 Technical Specifications
 
-Here is a Raspberry Pi Pico C/C++ SDK documentation:
-https://datasheets.raspberrypi.org/pico/raspberry-pi-pico-c-sdk.pdf
-## Purpose of the Project
+    I2C Frequency: 400kHz (Fast Mode).
 
-This software is not ready for production use. It has neither been developed nor
-tested for a specific use case. However, the license conditions of the
-applicable Open Source licenses allow you to adapt the software to your needs.
-Before using it in a safety relevant setting, make sure that the software
-fulfills your requirements and adjust it according to any applicable safety
-standards, e.g., ISO 26262.
+    Update Rate: 50ms (20Hz).
 
-## License
+    Filter Coefficient: 0.98 (High-pass Gyro + Low-pass Accel).
 
-This repository is open-sourced under the Apache-2.0 license. See the [LICENSE](LICENSE) file for details.
+    Frame ID: pico_frame.
 
-For a list of other open-source components included in this repository,
-see the file [3rd-party-licenses.txt](3rd-party-licenses.txt).
+📜 License
 
-## Known Issues/Limitations
-
-There are no known limitations.
+This project is licensed under the Apache License 2.0.

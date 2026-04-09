@@ -1,3 +1,6 @@
+// Copyright (c) 2026 jacky-benkyo. All rights reserved.
+// Licensed under the Apache License, Version 2.0.
+
 #include <stdio.h>
 #include <math.h>
 #include <rcl/rcl.h>
